@@ -1,0 +1,135 @@
+<style>
+    /*---------------------- Modal (Dialog) ----------------------*/
+    dialog {
+        width: 100%;
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px var(--shadow-color);
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+        transition:
+            opacity 0.3s ease-out,
+            transform 0.3s ease-out,
+            overlay 0.3s ease-out allow-discrete,
+            display 0.3s ease-out allow-discrete;
+        /* z-index: 12;     */
+    }
+
+    dialog[open] {
+        opacity: 1;
+        /* transform: scale(1) translateY(0); */
+        /* z-index: 11; */
+    }
+
+    dialog::backdrop {
+        background-color: rgba(0, 0, 0, 0.7);
+        /* overflow-y: auto; */
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+        /* transition: opacity 0.3s, visibility 0.3s; */
+        /* opacity: 0; */
+        transition:
+            background-color 0.3s ease-out,
+            backdrop-filter 0.3s ease-out,
+            overlay 0.3s ease-out allow-discrete,
+            display 0.3s ease-out allow-discrete;
+    }
+
+    dialog[open]::backdrop {
+        background-color: rgba(0, 0, 0, 0.7);
+        /* Opacidad del 70% */
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+    }
+
+    .dialog-form {
+        margin: 60px auto;
+        max-width: 800px;
+    }
+
+    .dialog-delete {
+        background-color: var(--dark-color);
+        padding: 30px;
+        margin: auto;
+        transform: translateY(-50px);
+        max-width: 500px;
+        text-align: center;
+    }
+
+    .dialog-delete.show .dialog-delete {
+        transform: translateY(0);
+    }
+
+    .dialog-header {
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .dialog-form .dialog-header {
+        background-color: var(--dark-color);
+        padding: 18px 24px;
+    }
+
+    .dialog-delete .dialog-header {
+        padding-bottom: 15px;
+    }
+
+    .dialog-title {
+        color: var(--accent-color);
+        font-size: 1.6rem;
+        font-weight: 600;
+    }
+
+    .dialog-close-btn {
+        background: none;
+        border: none;
+        color: var(--white-color);
+        font-size: 1.75rem;
+        opacity: 0.6;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+
+    .dialog-delete .dialog-close-btn:hover,
+    .dialog-form .dialog-close-btn:hover {
+        cursor: pointer;
+        opacity: 1;
+    }
+
+
+    .dialog-body {
+        flex-grow: 1;
+        width: 100%;
+        padding: 10px 24px;
+        overflow-y: auto;
+    }
+
+    .dialog-delete .dialog-text {
+        font-style: italic;
+        color: var(--white-color);
+    }
+
+    .dialog-footer {
+        display: flex;
+        justify-content: flex-end;
+        border-top: 1px solid var(--border-color);
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .dialog-form .dialog-footer {
+        padding: 16px 24px;
+    }
+
+    .dialog-delete .dialog-footer {
+        padding-top: 15px;
+        margin-top: 20px;
+    }
+
+    
+  
+</style>

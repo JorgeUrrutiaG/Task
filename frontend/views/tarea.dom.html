@@ -1,0 +1,83 @@
+<script>
+/**
+ * Contenedor UI encargado exclusivamente del manejo de la interfaz de tareas.
+ */
+const TaskDOM = {
+    // Mapeo centralizado de elementos del DOM para evitar querySelectors repetidos
+    elementos: {
+        formulario: () => document.getElementById('dialog-form'),
+        btnGuardar: () => document.getElementById('dialog-save-btn'),
+        cuerpoTabla: () => document.querySelector('.table-body')
+    },
+
+    /**
+     * Lee el formulario, lo valida y solicita su almacenamiento al servicio.
+     */
+    async guardar() {
+        const formulario = this.elementos.formulario();
+        const btnSave = this.elementos.btnGuardar();
+
+        if (!formulario.checkValidity()) {
+            showMessage("Faltan datos obligatorios.", "error");
+            return;
+        }
+
+        const formData = Object.fromEntries(new FormData(formulario).entries());
+        
+        // Estado visual: Bloquear envío
+        btnSave.disabled = true;
+        btnSave.innerText = "Guardando...";
+
+        try {
+            const mensajeExito = await TaskService.guardar(formData);
+            
+            dialog.close();
+            TablaDOM.cargarTareas(); // Asume que esta función refresca tu grilla principal
+            showToast('success', mensajeExito);
+        } catch (err) {
+            showToast('error', err.message);
+        } finally {
+            // Restaurar estado del botón pase lo que pase
+            btnSave.innerText = "Guardar";
+            btnSave.disabled = false;
+        }
+    },
+
+    /**
+     * Cierra una tarea actualizando temporalmente el estado visual de la tabla.
+     */
+    async cerrar(id) {
+        dialog.close();
+        this.elementos.cuerpoTabla().innerHTML = '<tr><td colspan="10" class="text-center">Cerrando Tarea...</td></tr>';
+        
+        try {
+            console.log(id);
+            await TaskService.cerrar(id);
+            showToast('success', 'Ticket Cerrado');
+            TablaDOM.cargarTareas();
+        } catch (err) {
+            showToast('error', err.message);
+            TablaDOM.cargarTareas(); // Recargamos para quitar el mensaje de carga en caso de error
+        }
+    },
+
+    /**
+     * Elimina una tarea actualizando temporalmente el estado visual de la tabla.
+     */
+    async eliminar(id) {
+        dialog.close();
+        this.elementos.cuerpoTabla().innerHTML = '<tr><td colspan="10" class="text-center">Eliminando Tarea...</td></tr>';
+        
+        try {
+            console.log(id);
+            await TaskService.eliminar(id);
+            showToast('success', 'Ticket Eliminado');
+            TablaDOM.cargarTareas();
+        } catch (err) {
+            showToast('error', err.message);
+            TablaDOM.cargarTareas(); // Recargamos para quitar el mensaje de carga en caso de error
+        }
+    }
+};
+
+</script>

@@ -1,0 +1,248 @@
+<style>
+  :root {
+    --green-text: rgb(2, 196, 2);
+    --red-text: red;
+    --blue-text: #58a6ff;
+    --yellow: yellow;
+    --dark: #1e2531;
+    --grey: #8b949e;
+    --white-color: #ffffff;
+
+  }
+
+
+  .message-box,
+  .toast-box {
+    position: fixed;
+    color: #fff;
+    right: 2rem;
+    top: 2rem;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    z-index: 99999;
+  }
+
+  .message-box {
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    /* transition: opacity 0.5s ease-in-out; */
+    max-width: 300px;
+
+  }
+
+  .message-box.error {
+    background-color: #8b0000;
+  }
+
+  .message-box.success {
+    background-color: green;
+  }
+
+  .message-box.show,
+  .message-box.error {
+    opacity: 1;
+    display: block;
+  }
+
+  .toast-box.top-right {
+    right: 2rem;
+    top: 4rem;
+  }
+
+  .toast-box.bottom-right {
+    right: 2rem;
+    bottom: 2rem;
+    top: unset;
+  }
+
+  .toast {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 300px;
+    padding: 7px 1rem;
+    border-radius: 50px;
+    margin-bottom: 15px;
+    box-shadow: 0px 3px 8px var(--black);
+    overflow: hidden;
+    background-color: var(--dark);
+  }
+
+  .toast-box.bottom-right .toast,
+  .toast-box.top-right .toast {
+    animation: show-right 0.3s ease forwards;
+  }
+
+  @keyframes show-right {
+    0% {
+      transform: translateX(100%);
+    }
+
+    40% {
+      transform: translateX(-5%);
+    }
+
+    80% {
+      transform: translateX(0%);
+    }
+
+    80% {
+      transform: translateX(-10px);
+    }
+  }
+
+  .toast-box.bottom-right .toast.hide,
+  .toast-box.top-right .toast.hide {
+    animation: hide-right 0.3s ease forwards;
+  }
+
+  @keyframes hide-right {
+    0% {
+      transform: translateX(-10px);
+    }
+
+    40% {
+      transform: translateX(-5%);
+    }
+
+    80% {
+      transform: translateX(0%);
+    }
+
+    100% {
+      transform: translateX(calc(100% + 40px));
+    }
+  }
+
+  .toast.success {
+    color: var(--green-text);
+  }
+
+  .toast.error {
+    color: var(--red-text);
+  }
+
+  .toast.warning {
+    color: var(--yellow);
+  }
+
+  .toast.info {
+    color: var(--blue-text);
+  }
+
+  .toast::after {
+    content: "";
+    position: absolute;
+    height: 4px;
+    width: 100%;
+    bottom: 0;
+    animation: progress 4s linear forwards;
+  }
+
+  .toast.success::after {
+    background-color: var(--green-text);
+  }
+
+  .toast.error::after {
+    background-color: var(--red-text);
+  }
+
+  .toast.warning::after {
+    background-color: var(--yellow);
+  }
+
+  .toast.info::after {
+    background-color: var(--blue-text);
+  }
+
+  @keyframes progress {
+    100% {
+      width: 0%;
+    }
+  }
+
+  .toast-left,
+  .toast-right {
+    display: flex;
+    align-items: center;
+  }
+
+  .toast-left {
+    width: 100%;
+  }
+
+  .toast-left i {
+    margin-right: 10px;
+    font-size: 2rem;
+  }
+
+  .toast-right {
+    margin-left: 20px;
+    width: 2rem;
+    height: 2rem;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .toast-right i {
+    font-size: 0.9rem;
+    color: var(--grey);
+  }
+
+  .toast-message {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    font-size: .9rem;
+    font-weight: 500;
+    padding: 10px 0;
+    text-align: center;
+  }
+
+  .toast-message span:last-child {
+    font-size: 0.9rem;
+    font-style: italic;
+    font-weight: 600;
+    padding: 5px 0;
+    color: var(--white-color);
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 10px;
+    padding: 10px 10px;
+    border: 1px solid var(--blue);
+    margin-top: 10px;
+  }
+
+  .toast-right:hover {
+    color: var(--white-color);
+  }
+
+  /*--------------Toast Mensajes-----------------*/
+  /* .message-box {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: green;
+    color: #fff;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 3000;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    max-width: 300px;
+    text-align: center;
+  } */
+
+  
+</style>

@@ -1,0 +1,39 @@
+<nav class="sidebar-menu">
+  <ul>
+    <!-- Filtro Todas-->
+    <li class="sidebar-item" onclick="filtrarPorEstado('Todas', this)">
+      <a href="#" class="sidebar-link sidebar-link--active" id="link-tareas">
+        <i class="bi bi-grid-fill"></i>
+        <span class="tooltip">Tareas</span>
+      </a>
+    </li>
+    <!-- Filtro Abiertas-->
+    <li class="sidebar-item" onclick="filtrarPorEstado('Abierta', this)">
+      <a href="#" class="sidebar-link" id="link-abiertas">
+        <i class="bi bi-clock-history"></i>
+        <span class="tooltip">Abiertas</span>
+      </a>
+    </li>
+    <!-- Filtro Resueltas -->
+    <li class="sidebar-item"onclick="filtrarPorEstado('Resuelta', this)">
+      <a href="#" class="sidebar-link" id="link-resueltas">
+        <i class="bi bi-check2-circle"></i>
+        <span class="tooltip">Resueltas</span>
+      </a>
+    </li>
+    <hr style="border: 0.5px solid #444; margin: 10px 15px;">
+    <li class="sidebar-item">
+      <a href="#" class="sidebar-link" id="link-control">
+        <i class="bi bi-ui-checks-grid"></i>
+        <span class="tooltip">Control Tareas</span>
+      </a>
+    </li>
+    <!-- Reportes (Sin cambios) -->
+    <li class="sidebar-item">
+      <a href="#" class="sidebar-link" id="link-reportes">
+        <i class="bi bi-printer"></i>
+        <span class="tooltip">Reportes</span>
+      </a>
+    </li>
+  </ul>
+</nav>

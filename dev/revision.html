@@ -1,0 +1,23 @@
+<script>
+
+// Escuchador de cambios perfeccionado (Mapea mes y semana automáticamente)
+export function listenFormChanges(formElement) {
+    if (!formElement) return;
+    formElement.addEventListener("change", function (e) {
+        const element = document.getElementById(e.target.id);
+        if (!element) return;
+
+        if (e.target.id === "fecha" && element.value) {
+            // Pasamos la fecha string ajustando el huso horario local para evitar desfases de días
+            const fechaVal = element.value + 'T00:00:00';
+            const fecha = new Date(fechaVal);
+
+            document.getElementById('mes').value = obtenerNombreMes(fecha);
+            document.getElementById("semana").value = 'Semana '+ obtenerSemanaMes(element.value);
+            console.log(`Fecha calculada: Mes (${document.getElementById('mes').value}), Semana (${document.getElementById('semana').value})`);
+        }
+        if (e.target.id === "cursos") console.log("Nuevo curso:", e.target.value);
+    });
+}
+
+</script>

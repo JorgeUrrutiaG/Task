@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?!=include('frontend/views/css/links'); ?>
+    <?!=include('frontend/views/css/main'); ?>
+    <?!=include('frontend/views/css/modal'); ?>
+    <?!=include('frontend/views/css/table'); ?>
+    <?!=include('frontend/views/css/form'); ?>
+    <?!=include('frontend/views/css/toast'); ?>
+    <base target="_top">
+</head>
+
+<body>
+    <header class="topbar">
+        <?!=include('frontend/views/layouts/topbar'); ?>
+    </header>
+    <aside class="sidebar">
+        <?!=include('frontend/views/layouts/sidebar'); ?>
+    </aside>
+    <main class="main">
+        <?!= include("frontend/views/layouts/modal"); ?>
+        <?!= include("frontend/views/layouts/table"); ?>
+    </main>
+    <footer class="footer">
+        <?!= include("frontend/views/layouts/footer");?>
+    </footer>
+    <div class="toast-box top-right"></div>
+    <!-- Scripts -->
+    <?!= include("frontend/views/vista");?> 
+    <?!= include("services/storage");?>
+    <?!= include("frontend/handlers/tasksManager");?>
+    <?!= include("frontend/handlers/userManager");?>
+    <?!= include("frontend/utils/excel");?>
+    <?!= include("frontend/utils/toast");?>
+    <?!= include("frontend/handlers/modal");?>
+    <?!= include("frontend/handlers/form");?>
+    <?!= include("frontend/handlers/table");?>
+    <?!= include("frontend/main");?>
+
+</body>
+
+</html>

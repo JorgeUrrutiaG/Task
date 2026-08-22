@@ -1,0 +1,174 @@
+<script>
+    let paginaActual = 1;
+    const filasPorPagina = 14;
+    let datosFiltradosActuales = [];
+    let estadoActual = 'Todas'; // NUEVO: Guarda el estado seleccionado en la barra lateral
+
+    function filtrarPorEstado(estado, elemento) {
+        // 1. Manejo visual de la Sidebar
+        document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('sidebar-link--active'));
+        elemento.querySelector('.sidebar-link').classList.add('sidebar-link--active');
+
+        // 2. Actualizar título y guardar estado actual
+        estadoActual = estado;
+        document.getElementById('titulo').innerText = `TICKETS: ${estado.toUpperCase()}`;
+
+        // 3. Limpiar el cuadro de búsqueda al cambiar de categoría (Opcional, pero recomendado)
+        const buscador = document.getElementById('buscador');
+        if (buscador) buscador.value = '';
+
+        // 4. Ejecutar el filtrador centralizado0
+        paginaActual = 1;
+        aplicarFiltrosYBuscar();
+    }
+    function aplicarFiltrosYBuscar() {
+        const textoBusqueda = document.getElementById('buscador')?.value.toLowerCase().trim() || '';
+
+        // Paso 1: Filtrar primero por Estado (Todas vs Un estado específico)
+        let resultado = DATOS_LOCALES;
+        if (estadoActual !== 'Todas') {
+            resultado = DATOS_LOCALES.filter(fila => fila[3] === estadoActual);
+        }
+
+        // Paso 2: Filtrar sobre ese resultado por el texto escrito en el buscador
+        if (textoBusqueda !== '') {
+            resultado = resultado.filter(fila => {
+                // Recorre cada celda de la fila buscando coincidencia de texto
+                return fila.some(celda => {
+                    if (celda === null || celda === undefined) return false;
+                    return celda.toString().toLowerCase().includes(textoBusqueda);
+                });
+            });
+        }
+
+        // Paso 3: Mandar los datos definitivos a renderizar en la tabla
+        renderizarTabla(resultado);
+    }
+    document.getElementById('buscador')?.addEventListener('input', () => {
+        paginaActual = 1; // Reinicia a la página 1 para evitar desbordes visuales
+        aplicarFiltrosYBuscar();
+    });
+    function renderizarTabla(filas) {
+        const thead = document.querySelector('.table-head');
+        const tbody = document.querySelector('.table-body');
+        if (!thead || !tbody) return;
+
+        datosFiltradosActuales = filas;
+
+        thead.innerHTML = `<tr>${CABECERAS_LOCALES.map(h => `<th>${h}</th>`).join('')}<th class='text-center'>Acciones</th></tr>`;
+
+        // Si no hay resultados tras la búsqueda o el filtro
+        if (filas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="${CABECERAS_LOCALES.length + 1}" style="text-align:center; padding: 20px; color: #6b7280;">No se encontraron tickets coordinados.</td></tr>`;
+            renderizarControlesPaginacion();
+            return;
+        }
+
+        const inicio = (paginaActual - 1) * filasPorPagina;
+        const fin = inicio + filasPorPagina;
+        const filasPagina = filas.slice(inicio, fin);
+
+        tbody.innerHTML = filasPagina.map((fila) => {
+            const idTarea = fila[0];
+            const estado = fila[3];
+            const filaJson = JSON.stringify(fila).replace(/"/g, '&quot;');
+
+            return `
+        <tr onclick="manejarClickFilaDirecto(event, ${filaJson})"> 
+            ${fila.map((celda, i) => {
+                if (i === 3) {
+                    return `<td class='text-center'><span class="badge estado-${celda.toLowerCase()}">${celda}</span></td>`;
+                }
+                if (i === 2) {
+                    return `<td class='text-center'><span class="badge prioridad-${celda.toLowerCase()}">${celda}</span></td>`;
+                }
+                return `<td>${celda}</td>`;
+            }).join('')}
+            <td class="acciones-celda text-center">
+                <div onclick="event.stopPropagation()">
+                    ${estado === 'Abierta' ? `<button class="btn-mini btn-close" onclick="ModalDOM.abrir('close',${idTarea})" title="Cerrar Tarea"><i class="bi bi-unlock"></i></button>` : '<i class="bi bi-lock tarea-cerrada btn-lock"></i>'}
+                    <button class="btn-mini btn-delete" onclick="ModalDOM.abrir('delete',${idTarea})" title="Eliminar"><i class="bi bi-trash"></i></button>
+                </div>
+            </td>
+        </tr>
+    `;
+        }).join('');
+
+        renderizarControlesPaginacion();
+    }
+    async function cargarTablaTareas() {
+        document.querySelector('.table-body').innerHTML = '<tr><td colspan="10" style="text-align:center">Cargando datos...</td></tr>';
+        try {
+            const data = await AppScriptService.obtenerTareas();
+            DATOS_LOCALES = data.filas;
+            CABECERAS_LOCALES = data.cabeceras;
+            paginaActual = 1;
+            estadoActual = 'Todas'; // Aseguramos que inicie sincronizado con el título
+            renderizarTabla(DATOS_LOCALES);
+        } catch (err) {
+            showToast('error', err.message);
+        }
+    }
+    // CORRECCIÓN: Ahora recibe directamente los datos del ticket mapeado sin depender del índice global
+    function manejarClickFilaDirecto(event, datosFila) {
+        ModalDOM.abrir('update', datosFila);
+    }
+    function renderizarControlesPaginacion() {
+        const paginador = document.getElementById("paginador");
+        if (!paginador) return;
+
+        paginador.innerHTML = ""; // Limpiar controles previos
+
+        const totalPaginas = Math.ceil(datosFiltradosActuales.length / filasPorPagina);
+
+        // Si no hay datos o es solo 1 página, ocultamos el paginador
+        if (totalPaginas <= 1) return;
+
+        // Configuración del rango visible
+        const maxBotonesVisibles = 5;
+        let paginaInicio = Math.max(1, paginaActual - Math.floor(maxBotonesVisibles / 2));
+        let paginaFin = Math.min(totalPaginas, paginaInicio + maxBotonesVisibles - 1);
+
+        // Ajustar el inicio si nos acercamos al final del catálogo
+        if (paginaFin - paginaInicio + 1 < maxBotonesVisibles) {
+            paginaInicio = Math.max(1, paginaFin - maxBotonesVisibles + 1);
+        }
+
+        // --- FUNCIÓN ADYACENTE: Crea un botón estándar ---
+        const crearBoton = (numero) => {
+            const boton = document.createElement("button");
+            boton.textContent = numero;
+            boton.classList.add("btn-pagina");
+            if (numero === paginaActual) {
+                boton.classList.add("activo");
+            }
+            boton.addEventListener("click", () => {
+                paginaActual = numero;
+                renderizarTabla(datosFiltradosActuales);
+            });
+            paginador.appendChild(boton);
+        };
+        // --- FUNCIÓN ADYACENTE: Crea el texto de puntos suspensivos ---
+        const crearPuntosSuspensivos = () => {
+            const span = document.createElement("span");
+            span.textContent = "...";
+            span.style.padding = "8px 12px";
+            span.style.color = "#6b7280"; // Gris suave
+            paginador.appendChild(span);
+        };
+        // 1. Siempre mostrar la Primera Página (si no está en el rango)
+        if (paginaInicio > 1) {
+            crearBoton(1);
+            if (paginaInicio > 2) crearPuntosSuspensivos();
+        }
+        // 2. Mostrar el bloque de páginas centrales dinámicas
+        for (let i = paginaInicio; i <= paginaFin; i++) {
+            crearBoton(i);
+        }
+        // 3. Siempre mostrar la Última Página (si no está en el rango)
+        if (paginaFin < totalPaginas) {
+            if (paginaFin < totalPaginas - 1) crearPuntosSuspensivos();
+            crearBoton(totalPaginas);
+        }
+    }
+</script>

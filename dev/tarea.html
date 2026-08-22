@@ -1,0 +1,56 @@
+<script>
+
+    async function saveTask() {
+        const formulario = document.getElementById('dialog-form');
+        // Validación simple
+        if (!formulario.checkValidity()) {
+            showMessage("Faltan datos obligatorios.", "error");
+            return;
+        }
+        // Obtener Datos desde el formulario
+        const formData = Object.fromEntries(new FormData(formulario).entries());
+        formData.usuario = document.querySelector('.user-name')?.textContent || "Usuario Web";
+        const funcionBackend = formData.id ? 'actualizarTicket' : 'crearNuevoTicket';
+        //Bloquear botón para evitar doble envío
+        const btnSave = document.getElementById('dialog-save-btn');
+        btnSave.disabled = true;
+        btnSave.innerText = "Guardando...";
+        try {
+            await AppScriptService.guardarTarea(formData, funcionBackend);
+            dialog.close();
+            cargarTablaTareas();
+            let message = formData.id ? "Registro Actualizado" : "Registro Creado";
+            btnSave.disabled = false;
+            showToast('success', message);
+        } catch (err) {
+            showToast('error', err.message);
+            btnSave.innerHTML = '<button type="button" class="btn bg-green" id="dialog-save-btn" onclick="saveTask()">Guardar</button>';
+            btnSave.disabled = false;
+        }
+    }
+
+    async function closeTask(id) {
+        dialog.close();
+        document.querySelector('.table-body').innerHTML = '<tr><td colspan="10" class="text-center">Cerrando Tarea...</td></tr>';
+        try {
+            await AppScriptService.cerrarTarea(id);
+            showToast('success', 'Ticket Cerrado');
+            cargarTablaTareas();
+        } catch (err) {
+            showToast('error', err.message);
+        }
+    }
+
+    async function deleteTask(id) {
+        dialog.close();
+        document.querySelector('.table-body').innerHTML = '<tr><td colspan="10" class="text-center">Eliminando Tarea...</td></tr>';
+        try {
+            await AppScriptService.eliminarTarea(id);
+            showToast('success', 'Ticket Eliminado');
+            cargarTablaTareas();
+        } catch (err) {
+            showToast('error', err.message);
+        }
+    }
+
+</script>

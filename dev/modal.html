@@ -1,0 +1,53 @@
+<script>
+
+    const dialog = document.querySelector('dialog');
+    // Agregamos un segundo parámetro opcional 'datosEditar'
+    function openModal(accion, datosEditar = {}) {
+        const title = document.getElementById("dialog-title");
+        const bodyDialog = document.getElementById('dialog-body');
+        const footerDialog = document.getElementById('dialog-footer');
+
+        const BOTONES = {
+            cancel: '<button type="button" class="btn bg-gray" id="dialog-cancel-btn">Cancelar</button>',
+            delete: `<button type="button" class="btn bg-red" id="confirm-delete-btn" onclick="deleteTask(${datosEditar})">Borrar</button>`,
+            save: '<button type="button" class="btn bg-green" id="dialog-save-btn" onclick="saveTask()">Guardar</button>',
+            print: '<button type="button" class="btn bg-marron" id="dialog-print-btn">Imprimir</button>',
+            close: `<button type="button" class="btn bg-red" id="confirm-close-btn" onclick="closeTask(${datosEditar})">Cerrar</button>`,
+        };
+
+        const MODAL_CONFIGS = {
+            new: { title: "Nuevo Formulario", classAdd: "dialog-form", classRemove: "dialog-delete", btnConfirm: "save" },
+            update: { title: `Actualizar Registro #${datosEditar[0]}`, classAdd: "dialog-form", classRemove: "dialog-delete", btnConfirm: "save" },
+            delete: { title: "Confirmación", classAdd: "dialog-delete", classRemove: "dialog-form", btnConfirm: "delete" },
+            read: { title: "Ver Registro", classAdd: "dialog-form", classRemove: "dialog-delete", btnConfirm: "print" },
+            close: { title: "Confirmación de Cierre", classAdd: "dialog-delete", classRemove: "dialog-form", btnConfirm: "close" }
+        };
+
+        const config = MODAL_CONFIGS[accion];
+        if (!config) return;
+
+        title.innerHTML = config.title;
+        bodyDialog.innerHTML = getForm(accion);
+        dialog.classList.replace(config.classRemove, config.classAdd) || dialog.classList.add(config.classAdd);
+
+        footerDialog.innerHTML = BOTONES.cancel + (BOTONES[config.btnConfirm] || "");
+        document.getElementById('dialog-cancel-btn')?.addEventListener("click", (e) => {
+            e.preventDefault();
+            dialog.close();
+        });
+
+        if (accion === "update") {
+            // Si estamos en modo update y pasaron datos, los inyectamos en el formulario recién creado
+            if (accion === "update" && datosEditar) {
+                rellenarFormulario(datosEditar);
+            }
+        }
+        dialog.showModal();
+    }
+
+    document.querySelector('.dialog-close-btn')?.addEventListener("click", (e) => {
+        e.preventDefault();
+        dialog.close();
+    });
+
+</script>

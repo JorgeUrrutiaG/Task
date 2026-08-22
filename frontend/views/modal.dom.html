@@ -1,0 +1,73 @@
+<script>
+    const ModalDOM = {
+        // Elemento nativo HTMLDialogElement asignado al inicializar
+        _instancia: document.querySelector('dialog'),
+
+        /**
+         * Abre la ventana modal configurando dinámicamente títulos, cuerpo y botones.
+         */
+        abrir(accion, datosEditar = null) {
+            const title = document.getElementById("dialog-title");
+            const bodyDialog = document.getElementById('dialog-body');
+            const footerDialog = document.getElementById('dialog-footer');
+            let idTarget = null;
+            // Extraemos el ID numérico de forma segura para los botones de eliminar/cerrar
+            if (accion === 'close' || accion === 'delete') {
+                idTarget = datosEditar;
+            } else if (accion === 'update') {
+                idTarget = datosEditar[0];
+            }
+
+           // Botones actualizados apuntando a los nuevos contenedores DOM nativos
+            const BOTONES = {
+                cancel: '<button type="button" class="btn bg-gray" id="dialog-cancel-btn">Cancelar</button>',
+                delete: `<button type="button" class="btn bg-red" id="confirm-delete-btn" onclick="TaskDOM.eliminar(${idTarget})">Borrar</button>`,
+                save: '<button type="button" class="btn bg-green" id="dialog-save-btn" onclick="TaskDOM.guardar()">Guardar</button>',
+                print: '<button type="button" class="btn bg-marron" id="dialog-print-btn">Imprimir</button>',
+                close: `<button type="button" class="btn bg-red" id="confirm-close-btn" onclick="TaskDOM.cerrar(${idTarget})">Cerrar</button>`,
+            };
+
+            const MODAL_CONFIGS = {
+                new: { title: "Nuevo Formulario", classAdd: "dialog-form", classRemove: "dialog-delete", btnConfirm: "save" },
+                update: { title: `Actualizar Registro #${idTarget}`, classAdd: "dialog-form", classRemove: "dialog-delete", btnConfirm: "save" },
+                delete: { title: "Confirmación", classAdd: "dialog-delete", classRemove: "dialog-form", btnConfirm: "delete" },
+                read: { title: "Ver Registro", classAdd: "dialog-form", classRemove: "dialog-delete", btnConfirm: "print" },
+                close: { title: "Confirmación de Cierre", classAdd: "dialog-delete", classRemove: "dialog-form", btnConfirm: "close" }
+            };
+
+            const config = MODAL_CONFIGS[accion];
+            if (!config) return;
+
+            title.innerHTML = config.title;
+            bodyDialog.innerHTML = FormDOM.obtenerTemplate(accion); // Consumimos desde FormDOM
+
+            // Gestión limpia de clases CSS
+            this._instancia.classList.replace(config.classRemove, config.classAdd) || this._instancia.classList.add(config.classAdd);
+            footerDialog.innerHTML = BOTONES.cancel + (BOTONES[config.btnConfirm] || "");
+
+            // Evento para el botón cancelar recién inyectado
+            document.getElementById('dialog-cancel-btn')?.addEventListener("click", (e) => {
+                e.preventDefault();
+                this._instancia.close();
+            });
+
+            // Si es edición, delegamos el llenado a FormDOM
+            if (accion === "update" && datosEditar) {
+                FormDOM.rellenar(datosEditar);
+            }
+
+            this._instancia.showModal();
+        },
+
+        /**
+         * Inicializa escuchadores globales fijos (como la "X" de cierre de la esquina)
+         */
+        inicializar() {
+            document.querySelector('.dialog-close-btn')?.addEventListener("click", (e) => {
+                e.preventDefault();
+                this._instancia.close();
+            });
+        }
+    };
+   
+</script>

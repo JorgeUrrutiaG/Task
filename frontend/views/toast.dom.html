@@ -1,0 +1,107 @@
+<script>
+    const ToastDOM = {
+        // Configuraciones y diccionarios estáticos del componente
+        _detalles: {
+            success: { iconClass: 'bi bi-check-circle', title: '¡Realizado!' },
+            error:   { iconClass: 'bi bi-x-circle',     title: '¡Error!' },
+            warning: { iconClass: 'bi bi-exclamation-triangle', title: '¡Advertencia!' },
+            info:    { iconClass: 'bi bi-info-circle',  title: '¡Información!' }
+        },
+
+        // Referencias centralizadas y perezosas al DOM
+        elementos: {
+            cajaToast: () => document.querySelector(".toast-box"),
+            cajaMensaje: () => document.querySelector(".message-box")
+        },
+
+        /**
+         * Crea el bloque HTML interno para una notificación Toast.
+         */
+        _crearTemplate(id, mensaje) {
+            const { iconClass, title } = this._detalles[id] || this._detalles.info;
+
+            return `
+                <div class="toast-left">
+                    <i class="${iconClass}"></i>
+                    <div class="toast-message">
+                        <span>${title}</span>
+                        <span>${mensaje}</span>
+                    </div>
+                </div>
+                <div class="toast-right"> 
+                    <i class="bi bi-x-lg"></i>
+                </div>`;
+        },
+
+        /**
+         * Aplica la animación de salida y remueve el elemento del documento.
+         */
+        _ocultar(toast) {
+            if (!toast) return;
+            toast.classList.add("hide");
+            setTimeout(() => toast.remove(), 300);
+        },
+
+        /**
+         * Dispara una notificación Toast flotante y temporal.
+         */
+        mostrarToast(id, mensaje = "") {
+            const contenedor = this.elementos.cajaToast();
+            if (!contenedor) return;
+
+            const toast = document.createElement("div");
+            toast.className = `toast ${id}`;
+            toast.innerHTML = this._crearTemplate(id, mensaje);
+            contenedor.appendChild(toast);
+
+            // Configuración del botón de cierre manual (X)
+            toast.querySelector('.toast-right')?.addEventListener('click', () => {
+                this._ocultar(toast);
+            });
+
+            // Auto-cierre tras 4 segundos
+            setTimeout(() => {
+                this._ocultar(toast);
+            }, 4000);
+        },
+
+        /**
+         * Muestra un mensaje estático integrado en un contenedor inline de la UI.
+         */
+        mostrarMensaje(mensaje, tipo = '') {
+            const caja = this.elementos.cajaMensaje();
+            if (!caja) return; // Seguro por si el elemento no existe en el layout actual
+
+            caja.textContent = mensaje;
+            const claseTipo = (tipo !== '') ? 'error' : 'success';
+            
+            caja.classList.add(claseTipo);
+            
+            setTimeout(() => {
+                caja.classList.remove(claseTipo);
+                caja.textContent = ''; // Limpia el texto al retirar el estado
+            }, 4000);
+        },
+
+        /**
+         * Limpia todas las clases adicionales del contenedor principal (excepto la base).
+         */
+        limpiarClasesContenedor() {
+            const contenedor = this.elementos.cajaToast();
+            if (!contenedor) return;
+
+            const listaClases = [...contenedor.classList];
+            listaClases.forEach((clase) => {
+                if (clase !== "toast-box") contenedor.classList.remove(clase);
+            });
+        }
+    };
+
+    // =========================================================================
+    // COMPATIBILIDAD RETROACTIVA (Bridges / Puentes)
+    // =========================================================================
+    // Mantenemos las funciones globales antiguas apuntando al nuevo objeto 
+    // para no tener que romper o cambiar el código en tus otros archivos.
+    const showToast = (id, mensaje) => ToastDOM.mostrarToast(id, mensaje);
+    const showMessage = (mensaje, tipo) => ToastDOM.mostrarMensaje(mensaje, tipo);
+</script>

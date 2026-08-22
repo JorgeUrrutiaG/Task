@@ -1,0 +1,207 @@
+<style>
+    /*---------------------- Form ----------------------*/
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .form-row.oculto {
+        display: none;
+    }
+
+    .col-2 {
+        grid-column: span 2;
+    }
+
+    * .col-3 {
+        grid-column: span 3;
+    }
+
+    .col-4 {
+        grid-column: span 4;
+    }
+
+    .col-5 {
+        grid-column: span 5;
+    }
+
+    .col-6 {
+        grid-column: span 6;
+    }
+
+    .col-7 {
+        grid-column: span 7;
+    }
+
+    .col-8 {
+        grid-column: span 8;
+    }
+
+    .col-12 {
+        grid-column: span 12;
+    }
+
+    @media (max-width: 768px) {
+
+        .col-2,
+        .col-3,
+        .col-4,
+        .col-5,
+        .col-6,
+        .col-7,
+        .col-8,
+        .col-12 {
+            grid-column: span 12;
+        }
+    }
+
+    .input-group {
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .input-group-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 14px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #031c35;
+        background-color: #f0f4f8;
+        border: 1px solid #ced4da;
+        border-radius: 4px 0 0 4px;
+        min-width: 44px;
+        /* height: 59px; */
+    }
+
+    /* Ajuste específico para Bootstrap Icons v1.13.1 */
+    .input-group-text i {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        font-size: 1.1rem;
+        margin-right: 5px;
+    }
+
+    .form-control,
+    .form-select {
+        display: block;
+        width: 100%;
+        height: 38px;
+        padding: 6px 12px;
+        font-size: 0.95rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #ffffff;
+        border: 1px solid #ced4da;
+        box-sizing: border-box;
+        border-radius: 4px;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .input-group .form-control,
+    .input-group .form-select {
+        border-radius: 0 4px 4px 0;
+        margin-left: -1px;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        color: #212529;
+        background-color: #ffffff;
+        border-color: #031c35;
+        outline: 0;
+        box-shadow: 0 0 0 4px rgba(3, 28, 53, 0.18);
+        z-index: 3;
+    }
+
+    .form-control:disabled,
+    .form-select:disabled {
+        background-color: #f8f9fa;
+        opacity: 1;
+        color: #6c757d;
+    }
+
+    /* 1. Contenedor del efecto flotante */
+    .form-floating {
+        position: relative;
+        flex: 1 1 auto;
+        /* Permite que el input ocupe el resto del ancho del input-group */
+        width: 1%;
+        min-width: 0;
+    }
+
+    /* 2. Ajuste de espaciado interno para el input, textarea y select */
+    .form-floating>.form-control,
+    .form-floating>.form-select {
+        height: calc(3.5rem + 2px);
+        padding: 1.625rem 0.75rem 0.625rem 0.75rem;
+        /* line-box-sizing: border-box; */
+    }
+
+    /* Ajuste específico para áreas de texto */
+    .form-floating>textarea.form-control {
+        height: auto;
+    }
+
+    /* 3. Estilo base de la etiqueta (Label) */
+    .form-floating>label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 1rem 0.75rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        pointer-events: none;
+        /* Permite clickear el input a través del texto */
+        transform-origin: 0 0;
+        transition: opacity .15s ease-in-out, transform .15s ease-in-out;
+        color: #35383a;
+        /*#6c757d;*/
+        font-weight: 500;
+        /* Color gris de texto secundario */
+    }
+
+    /* 4. ESTADO POR DEFECTO: Cuando el input está vacío y NO tiene foco, el label se queda al centro */
+    .form-floating>.form-control:placeholder-shown~label,
+    .form-floating>.form-select:placeholder-shown~label {
+        transform: scale(1) translate(0, 0);
+    }
+
+    /* Ocultar visualmente el placeholder nativo para que no se choque con el label */
+    .form-floating>.form-control::placeholder {
+        color: transparent;
+    }
+
+    /* 5. ESTADO ACTIVO: Cuando el input gana foco O cuando ya tiene texto escrito */
+    .form-floating>.form-control:focus~label,
+    .form-floating>.form-control:not(:placeholder-shown)~label,
+    .form-floating>.form-select:focus~label,
+    .form-floating>.form-select:not([value=""]):not(:placeholder-shown)~label {
+        opacity: .75;
+        color: #222020;
+        transform: scale(.85) translateY(-0.5rem) translateX(0.15rem);
+    }
+
+    /* Ajuste estético si usas bordes redondeados en el input-group */
+    .input-group>.form-floating:not(:last-child)>.form-control,
+    .input-group>.form-floating:not(:last-child)>.form-select {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .input-group>.form-floating:not(:first-child)>.form-control,
+    .input-group>.form-floating:not(:first-child)>.form-select {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+</style>

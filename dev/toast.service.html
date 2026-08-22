@@ -1,0 +1,80 @@
+<script>
+  const toastBox = document.querySelector(".toast-box");
+  const messageBox = document.querySelector(".message-box");
+  const toastDetails = {
+    success: {
+      iconClass: `bi bi-check-circle`,
+      title: `Realizado!`,
+    },
+    error: {
+      iconClass: `bi bi-x-circle`,
+      title: `Error!`,
+    },
+    warning: {
+      iconClass: `bi bi-exclamation-triangle`,
+      title: `Warning!`,
+    },
+    info: {
+      iconClass: `bi bi-info-circle`,
+      title: `Info!`,
+    },
+  };
+
+  //removes toast box position class
+  const removeClass = () => {
+    let list = toastBox.classList;
+    list.forEach((toastClass) => {
+      //remove all classes from 'text-box' accept 'toast-box' class
+      if (toastClass !== "toast-box") toastBox.classList.remove(toastClass);
+    });
+  };
+
+  //this function create dynamic toast
+  const toastHTML = (id, message) => {
+    const { iconClass, title } = toastDetails[id];
+
+    return `<div class="toast-left">
+            <i class="fa-solid ${iconClass}"></i>
+            <div class="toast-message">
+              <span>${title}</span>
+              <span>${message}</span>
+            </div>
+          </div>
+          <div class="toast-right"> 
+            <i class="bi bi-x-lg" ></i>
+          </div>`;
+  };
+
+  //this function hide toast after some time
+  const hideToast = (toast) => {
+    toast.classList.add("hide");
+    setTimeout(() => toast.remove(), 300);
+  };
+
+  //function to create toast
+  const showToast = (id, mensaje = "") => {
+    let toast = document.createElement("div");
+    toast.className = `toast ${id}`;
+    toast.innerHTML = toastHTML(id, mensaje);
+    toastBox.appendChild(toast);
+    // Configuramos el botón de cierre manual (&times;)
+    const closeBtn = toast.querySelector('.toast-right');
+    closeBtn?.addEventListener('click', () => {
+      hideToast(toast);
+    });
+    setTimeout(() => {
+      hideToast(toast);
+    }, 4000);
+  };
+
+  const showMessage = (message, type = '') => {
+    messageBox.textContent = message;
+    const typeToast = (type != '') ? 'error' : 'success';
+    messageBox.classList.add(typeToast);
+    setTimeout(() => {
+      messageBox.classList.remove(typeToast);
+    }, 4000);
+
+  }
+
+</script>

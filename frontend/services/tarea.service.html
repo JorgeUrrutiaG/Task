@@ -1,0 +1,41 @@
+<script>
+    /**
+ * Servicio encargado de la lógica de negocio y comunicación con el backend para tareas.
+ */
+const TaskService = {
+    /**
+     * Procesa el guardado de una tarea decidiendo si es una creación o actualización.
+     */
+    async guardar(formData) {
+        try {
+            // Inyectamos el usuario activo desde el DOM de forma segura antes de enviar
+            formData.usuario = document.querySelector('.user-name')?.textContent || "Usuario Web";
+            
+            // Decidimos dinámicamente la función del backend de Apps Script
+            const funcionBackend = formData.id ? 'actualizarTareaBackend' : 'crearTareaBackend';
+            
+            await AppScriptService.guardarTarea(formData, funcionBackend);
+            return formData.id ? "Registro Actualizado" : "Registro Creado";
+        } catch (err) {
+            throw new Error(`Error al guardar tarea: ${err.message}`);
+        }
+    },
+
+    async cerrar(id) {
+        try {
+            await AppScriptService.cerrarTarea(id);
+        } catch (err) {
+            throw new Error(`Error al cerrar tarea: ${err.message}`);
+        }
+    },
+
+    async eliminar(id) {
+        try {
+            await AppScriptService.eliminarTarea(id);
+        } catch (err) {
+            throw new Error(`Error al eliminar tarea: ${err.message}`);
+        }
+    }
+};
+
+</script>

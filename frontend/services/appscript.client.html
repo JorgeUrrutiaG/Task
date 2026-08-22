@@ -1,0 +1,36 @@
+<script>
+    const AppScriptService = {
+        // Función interna para no repetir código de promesas
+        _run(nombreFuncion, ...args) {
+            return new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)[nombreFuncion](...args);
+            });
+        },
+
+        obtenerTareas() {
+            return this._run('obtenerTareasBackend');
+        },
+
+        guardarTarea(datos, funcionBackend) {
+            return this._run(funcionBackend, datos);
+        },
+
+        cerrarTarea(id) {
+            return this._run('cerrarTareaBackend', id);
+        },
+
+        eliminarTarea(id) {
+            return this._run('eliminarTareaBackend', id);
+        },
+
+        obtenerUsuarioLogueado() {
+            return this._run('obtenerUsuarioLogueado');
+        },
+
+        
+    };
+
+
+</script>

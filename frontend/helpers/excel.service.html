@@ -1,0 +1,50 @@
+<script>
+    const ExcelService = {
+        /**
+         * Toma los arreglos globales de la aplicación y procesa la descarga de un archivo .xlsx
+         */
+        descargar() {
+            // Validación: Asegurar que existan registros cargados en memoria
+            if (!DATOS_LOCALES || DATOS_LOCALES.length === 0) {
+                showToast("warning", "No hay datos para exportar"); // Corrección: cambiado de createToast a showToast
+                return;
+            }
+
+            try {
+                // 1. Crear un nuevo libro de trabajo vacío (Workbook)
+                const wb = XLSX.utils.book_new();
+
+                // 2. Combinar cabeceras con datos para formar la matriz bidimensional completa
+                const matrizParaExcel = [CABECERAS_LOCALES, ...DATOS_LOCALES];
+
+                // 3. Convertir la matriz a una hoja de cálculo nativa (Worksheet)
+                const ws = XLSX.utils.aoa_to_sheet(matrizParaExcel);
+
+                // 4. Configurar un ancho por defecto de 20 caracteres para todas las columnas
+                const wscols = CABECERAS_LOCALES.map(() => ({ wch: 20 }));
+                ws['!cols'] = wscols;
+
+                // 5. Añadir la hoja estructurada al libro bajo la pestaña "Tickets"
+                XLSX.utils.book_append_sheet(wb, ws, "Tickets");
+
+                // 6. Generar el nombre dinámico del archivo basado en la fecha del sistema (AAAA-MM-DD)
+                const fecha = new Date().toISOString().split('T')[0];
+                const nombreArchivo = `Reporte_Tickets_${fecha}.xlsx`;
+
+                // 7. Disparar la descarga binaria directa en el navegador
+                XLSX.writeFile(wb, nombreArchivo);
+
+            } catch (error) {
+                console.error("Error crítico en el servicio de exportación Excel:", error);
+                showToast('error', 'Error al generar el archivo Excel');
+            }
+        }
+    };
+
+    // =========================================================================
+    // COMPATIBILIDAD RETROACTIVA (Bridge / Puente)
+    // =========================================================================
+    // Mantenemos la función global antigua para que tus botones existentes 
+    // (ej. onclick="descargarExcel()") sigan funcionando sin romper nada.
+    const descargarExcel = () => ExcelService.descargar();
+</script>

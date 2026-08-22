@@ -1,0 +1,39 @@
+<script>
+function descargarExcel() {
+        if (DATOS_LOCALES.length === 0) {
+            createToast("warning", "No hay datos para exportar");
+            return;
+        }
+
+        try {
+            // 1. Crear un nuevo libro de trabajo (Workbook)
+            const wb = XLSX.utils.book_new();
+
+            // 2. Combinar cabeceras con datos para formar la matriz completa
+            const matrizParaExcel = [CABECERAS_LOCALES, ...DATOS_LOCALES];
+
+            // 3. Convertir la matriz a una hoja (Worksheet)
+            const ws = XLSX.utils.aoa_to_sheet(matrizParaExcel);
+
+            // 4. (Opcional) Ajustar anchos de columna básicos
+            const wscols = CABECERAS_LOCALES.map(() => ({ wch: 20 }));
+            ws['!cols'] = wscols;
+
+            // 5. Añadir la hoja al libro
+            XLSX.utils.book_append_sheet(wb, ws, "Tickets");
+
+            // 6. Generar nombre de archivo con fecha actual
+            const fecha = new Date().toISOString().split('T')[0];
+            const nombreArchivo = `Reporte_Tickets_${fecha}.xlsx`;
+
+            // 7. Disparar la descarga
+            XLSX.writeFile(wb, nombreArchivo);
+
+        } catch (error) {
+            console.error("Error al exportar Excel:", error);
+            showToast('error','Error al generar el archivo Excel');
+        }
+    }
+
+
+</script>

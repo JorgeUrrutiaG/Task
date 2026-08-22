@@ -1,0 +1,54 @@
+<script>
+    class Vista {
+        constructor() {
+            // this.main = document.getElementById('main');
+        }
+
+        linkNavigation(handNavigation) {
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault()
+                    const ruta = this.id;
+                    // const ruta = e.target.getAttribute('data-link');
+                    handNavigation(ruta);
+                });
+            });
+        }
+    }
+
+    class Controlador {
+        constructor(modelo, vista) {
+            this.modelo = modelo;
+            this.vista = vista;
+
+            this.vista.linkNavigation(this.handNavigation);
+        }
+
+        handNavigation = (ruta) => {
+            this.modelo.cambiarRuta(ruta);
+            // this.actualizarPantalla();
+            showToast('success', ruta);
+            const rutaSolicitada = this.modelo.obtenerRuta();
+        }
+
+        actualizarPantalla() {
+            // const rutaActual = this.modelo.obtenerRuta();
+            // const tareas = this.modelo.obtenerTareas();
+            // this.vista.renderizar(rutaActual, { tareas });
+        }
+    }
+
+    class Modelo {
+        constructor() {
+            this.vistaActual = 'link-tareas';
+
+        }
+        obtenerRuta() {
+            console.log(`Desde el modelo la ruta : ${this.vistaActual}`);
+            return this.vistaActual;
+
+        }
+        cambiarRuta(ruta) { this.vistaActual = ruta; }
+    }
+
+</script>

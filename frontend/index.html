@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?!= include('frontend/views/css/links'); ?>
+    <?!= include('frontend/views/css/main'); ?>
+    <?!= include('frontend/views/css/modal'); ?>
+    <?!= include('frontend/views/css/table'); ?>
+    <?!= include('frontend/views/css/form'); ?>
+    <?!= include('frontend/views/css/toast'); ?>
+    <base target="_top">
+</head>
+
+<body>
+    <header class="topbar">
+        <?!= include('frontend/views/layouts/topbar'); ?>
+    </header>
+    <aside class="sidebar">
+        <?!= include('frontend/views/layouts/sidebar'); ?>
+    </aside>
+    <main class="main">
+        <?!= include("frontend/views/layouts/modal"); ?>
+        <?!= include("frontend/views/layouts/table"); ?>
+    </main>
+    <footer class="footer">
+        <?!= include("frontend/views/layouts/footer"); ?>
+    </footer>
+    <div class="toast-box top-right"></div>
+
+    <!-- ========================================== -->
+    <!-- SCRIPTS Y CONTROLADORES                    -->
+    <!-- ========================================== -->
+    
+    <!-- 1. Utilidades y Helpers Base -->
+    <?!= include("frontend/helpers/excel.service"); ?>
+    
+
+    <!-- 2. Adaptador Central de Comunicación con Apps Script -->
+    <?!= include("frontend/services/appscript.client"); ?>
+
+    <!-- 3. Servicios de Datos (Lógica de Negocio) -->
+    <?!= include("frontend/services/user.service"); ?>
+    <?!= include("frontend/services/tarea.service"); ?>
+
+    <!-- 4. Controladores de Interfaz Gráfica (DOM / Vistas) -->
+    <?!= include("frontend/views/user.dom"); ?>
+    <?!= include("frontend/views/tarea.dom"); ?>
+    
+    <!-- 5. Controladores del Layout y Componentes Genéricos -->
+    <?!= include("frontend/views/vista.dom"); ?> 
+    <?!= include("frontend/views/modal.dom"); ?>
+    <?!= include("frontend/views/form.dom"); ?>
+    <?!= include("frontend/views/tabla.dom"); ?>
+    <?!= include("frontend/views/toast.dom"); ?>
+    <?!= include("frontend/views/topbar.dom"); ?>
+    <?!= include("frontend/views/control.dom"); ?>
+    
+    <!-- 6. Inicializador de la Aplicación -->
+    <?!= include("frontend/main"); ?>
+
+</body>
+
+</html>

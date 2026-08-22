@@ -1,0 +1,108 @@
+<script>
+    const bodyForm = `
+    <form name="form" class="form" id="dialog-form">
+            <!-- ID Oculto para Edición -->
+            <div class="form-row oculto" id="rowId">
+                <div class="col-6">
+                    <div class="input-group">
+                        <span class="input-group-text fw-bold">ID</span>
+                        <input type="text" id="id" name="id" class="form-control" readonly/>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <!-- Fecha -->
+                <div class="col-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                        <div class="form-floating">
+                            <input type="date" name="fecha" id="fecha" class="form-control" placeholder=" " required />
+                            <label for="fecha">Fecha Solicitud</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <!-- Prioridad -->
+                <div class="col-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-exclamation-triangle"></i></span>
+                        <div class="form-floating">
+                            <select class="form-select" name="prioridad" id="prioridad">
+                                <option>Urgente</option>
+                                <option>Alta</option>
+                                <option selected>Media</option>
+                                <option>Baja</option>
+                            </select>
+                            <label for="prioridad">Prioridad</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <!-- Tarea -->
+                <div class="col-12">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="tarea" name="tarea" placeholder=" " required>
+                            <label for="tarea">Tarea</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="solicitante" name="solicitante" placeholder="" required>
+                            <label for="solicitante">Solicitante</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- Plataforma -->
+                <div class="col-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-pc-display"></i></span>
+                        <div class="form-floating">
+                            <select class="form-select" name="plataforma" id="plataforma" required>
+                                <option value="" disabled>Seleccione...</option>
+                                <option selected>No Aplica</option>                                
+                                <option>Gmail</option>
+                                <option>DIA</option>
+                                <option>Aptus</option>
+                                <option>Canvas</option>
+                            </select>
+                            <label for="plataforma">Plataforma</label>
+                        </div>
+                    </div>
+                </div>
+            </div>    
+        </form>`;
+
+    const FORM_TEMPLATES = {
+        new: bodyForm,
+        update: bodyForm,
+        delete: `<p class="dialog-text">¿Estás seguro de borrar el registro?</p>`,
+        read: "<p>Ver registro</p>",
+        close: `<p class="dialog-text">¿Estás seguro de cerrar la Tarea? </p>`,
+    };
+
+    const getForm = (accion) => FORM_TEMPLATES[accion] || "";
+
+    // NUEVO: Función para inyectar datos previos en el modo Update de forma dinámica
+    function rellenarFormulario(datos) {
+        if (!datos) return;
+        document.getElementById('rowId').classList.remove('oculto');
+        document.getElementById('id').value = datos[0];
+        const partesFecha = datos[1].split('/');
+        if (partesFecha.length === 3) document.getElementById('fecha').value = `${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`;
+        document.getElementById('prioridad').value = datos[2];
+        document.getElementById('tarea').value = datos[4];
+        document.getElementById('solicitante').value = datos[5];
+        document.getElementById('plataforma').value = datos[8];
+    }
+
+
+</script>

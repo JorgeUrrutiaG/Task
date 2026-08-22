@@ -1,0 +1,35 @@
+<script>
+// Variables Globales del Estado de la Aplicación
+let DATOS_LOCALES = [];
+let CABECERAS_LOCALES = [];
+
+// Escuchar el evento de carga del navegador
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Inicializar componentes estáticos de la interfaz gráfica (Fijos en el DOM)
+    TopbarDOM.inicializar();      // <-- Este ya maneja internamente el botón #go-home-btn
+    NavigationDOM.inicializar();
+    TablaDOM.inicializar();
+    ModalDOM.inicializar();
+    
+    // 2. Arrancar la carga asíncrona de datos desde Google Sheets
+    iniciarSistema();
+});
+
+/**
+ * Orquestador de arranque del sistema.
+ * Carga de forma asíncrona y en paralelo la información del usuario y la tabla principal.
+ */
+async function iniciarSistema() {
+    try {
+        await Promise.all([
+            UserDOM.cargarInformacion(),
+            TablaDOM.cargarTareas()
+        ]);
+    } catch (err) {
+        console.error("Error crítico durante la inicialización:", err);
+        if (typeof showToast === 'function') {
+            showToast('error', 'Error al sincronizar los datos iniciales de la aplicación.');
+        }
+    }
+}
+</script>
