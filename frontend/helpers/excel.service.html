@@ -5,8 +5,14 @@
          */
         descargar() {
             // Validación: Asegurar que existan registros cargados en memoria
-            if (!DATOS_LOCALES || DATOS_LOCALES.length === 0) {
+            if (!AppState.datos || AppState.datos.length === 0) {
                 showToast("warning", "No hay datos para exportar"); // Corrección: cambiado de createToast a showToast
+                return;
+            }
+
+            // Validación: Asegurar que la librería SheetJS (CDN) esté cargada
+            if (typeof XLSX === 'undefined') {
+                showToast('error', 'La librería de exportación no está disponible. Recarga la página.');
                 return;
             }
 
@@ -15,13 +21,13 @@
                 const wb = XLSX.utils.book_new();
 
                 // 2. Combinar cabeceras con datos para formar la matriz bidimensional completa
-                const matrizParaExcel = [CABECERAS_LOCALES, ...DATOS_LOCALES];
+                const matrizParaExcel = [AppState.cabeceras, ...AppState.datos];
 
                 // 3. Convertir la matriz a una hoja de cálculo nativa (Worksheet)
                 const ws = XLSX.utils.aoa_to_sheet(matrizParaExcel);
 
                 // 4. Configurar un ancho por defecto de 20 caracteres para todas las columnas
-                const wscols = CABECERAS_LOCALES.map(() => ({ wch: 20 }));
+                const wscols = AppState.cabeceras.map(() => ({ wch: 20 }));
                 ws['!cols'] = wscols;
 
                 // 5. Añadir la hoja estructurada al libro bajo la pestaña "Tickets"

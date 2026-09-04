@@ -1,78 +1,117 @@
 /**
  * CONTROLADOR DE TAREAS (TICKETS)
  * Responde a: TaskService / AppScriptService.guardarTarea(), cerrarTarea(), etc.
+ *
+ * Mapeo de columnas (evita números mágicos y hace el código auto-documentado).
+ * IMPORTANTE: mantener sincronizado con la estructura de la hoja "Registros".
  */
+const COL_ID = 1;
+const COL_FECHA = 2;
+const COL_PRIORIDAD = 3;
+const COL_ESTADO = 4;
+const COL_TAREA = 5;
+const COL_SOLICITANTE = 6;
+const COL_USUARIO = 7;
+const COL_FECHA_CIERRE = 8;
+const COL_PLATAFORMA = 9;
+
+const ESTADO_ABIERTA = 'Abierta';
+const ESTADO_RESUELTA = 'Resuelta';
+
+/**
+ * Normaliza el contenido de una fila (fechas legibles, buffers, etc.).
+ */
+function _normalizarCelda(celda) {
+  if (celda instanceof Date) {
+    return Utilities.formatDate(celda, Session.getScriptTimeZone(), "dd/MM/yyyy");
+  }
+  if (celda instanceof Object && typeof celda.getDataAsString === 'function') {
+    return celda.getDataAsString();
+  }
+  return celda;
+}
 
 function obtenerTareasBackend() {
-  const valores = HOJA_REGISTROS.getDataRange().getValues();
-  
-  const datosFormateados = valores.map(fila => fila.map(celda => {
-    if (celda instanceof Date) return Utilities.formatDate(celda, Session.getScriptTimeZone(), "dd/MM/yyyy");
-    return celda;
-  }));
+  const hoja = getHojaRegistros();
+  const valores = hoja.getDataRange().getValues();
+
+  const cabeceras = valores[0].map(_normalizarCelda);
+  const filas = valores.slice(1).map(fila => fila.map(_normalizarCelda));
 
   return {
-    cabeceras: datosFormateados[0],
-    filas: datosFormateados.slice(1)
+    cabeceras: cabeceras,
+    filas: filas
   };
+}
+
+/**
+ * Calcula el siguiente ID disponible de forma robusta:
+ * busca el máximo ID existente en lugar de asumir el de la última fila.
+ */
+function _calcularNuevoId() {
+  const hoja = getHojaRegistros();
+  const ultimaFila = hoja.getLastRow();
+  if (ultimaFila < 2) return 1;
+
+  const ids = hoja.getRange(2, COL_ID, ultimaFila - 1, 1).getValues().flat()
+    .map(Number)
+    .filter(n => !isNaN(n));
+
+  return ids.length === 0 ? 1 : Math.max(...ids) + 1;
 }
 
 function crearTareaBackend(datos) {
   try {
-    const ultimaFila = HOJA_REGISTROS.getLastRow();
-
-    let ultimoId = 0;
-    if (ultimaFila > 1) {
-      ultimoId = parseInt(HOJA_REGISTROS.getRange(ultimaFila, 1).getValue());
-    }
-    const nuevoId = isNaN(ultimoId) ? 1 : ultimoId + 1;
+    const nuevoId = _calcularNuevoId();
 
     const nuevaFila = [
       nuevoId,
       datos.fecha,
       datos.prioridad,
-      'Abierta',
+      ESTADO_ABIERTA,
       datos.tarea,
       datos.solicitante,
-      datos.usuario, 
-      '',            
+      datos.usuario,
+      '', // Fecha Cierre inicial
       datos.plataforma
     ];
 
-    HOJA_REGISTROS.appendRow(nuevaFila);
+    getHojaRegistros().appendRow(nuevaFila);
     return nuevoId;
-
   } catch (e) {
     throw new Error("Error en el servidor al guardar: " + e.toString());
   }
 }
 
 function actualizarTareaBackend(datos) {
+  const hoja = getHojaRegistros();
   const fila = buscarFilaPorId(datos.id);
   if (!fila) throw new Error("No se encontró el ticket con ID: " + datos.id);
 
-  HOJA_REGISTROS.getRange(fila, 2).setValue(datos.fecha);
-  HOJA_REGISTROS.getRange(fila, 3).setValue(datos.prioridad);
-  HOJA_REGISTROS.getRange(fila, 5).setValue(datos.tarea);
-  HOJA_REGISTROS.getRange(fila, 6).setValue(datos.solicitante);
-  HOJA_REGISTROS.getRange(fila, 9).setValue(datos.plataforma);
+  hoja.getRange(fila, COL_FECHA).setValue(datos.fecha);
+  hoja.getRange(fila, COL_PRIORIDAD).setValue(datos.prioridad);
+  hoja.getRange(fila, COL_TAREA).setValue(datos.tarea);
+  hoja.getRange(fila, COL_SOLICITANTE).setValue(datos.solicitante);
+  hoja.getRange(fila, COL_PLATAFORMA).setValue(datos.plataforma);
   return true;
 }
 
 function cerrarTareaBackend(id) {
+  const hoja = getHojaRegistros();
   const fila = buscarFilaPorId(id);
   if (!fila) throw new Error("Ticket no encontrado");
 
   const fechaHoy = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
-  HOJA_REGISTROS.getRange(fila, 4).setValue("Resuelta"); 
-  HOJA_REGISTROS.getRange(fila, 8).setValue(fechaHoy);   
+  hoja.getRange(fila, COL_ESTADO).setValue(ESTADO_RESUELTA);
+  hoja.getRange(fila, COL_FECHA_CIERRE).setValue(fechaHoy);
   return true;
 }
 
 function eliminarTareaBackend(id) {
+  const hoja = getHojaRegistros();
   const fila = buscarFilaPorId(id);
   if (fila) {
-    HOJA_REGISTROS.deleteRow(fila);
+    hoja.deleteRow(fila);
     return true;
   }
   return false;
@@ -82,7 +121,11 @@ function eliminarTareaBackend(id) {
  * Función de utilidad interna (Helper del controlador de tareas)
  */
 function buscarFilaPorId(id) {
-  const ids = HOJA_REGISTROS.getRange(2, 1, HOJA_REGISTROS.getLastRow() - 1, 1).getValues().flat();
+  const hoja = getHojaRegistros();
+  const ultimaFila = hoja.getLastRow();
+  if (ultimaFila < 2) return null;
+
+  const ids = hoja.getRange(2, COL_ID, ultimaFila - 1, 1).getValues().flat();
   const index = ids.indexOf(Number(id));
-  return index !== -1 ? index + 2 : null; 
+  return index !== -1 ? index + 2 : null;
 }

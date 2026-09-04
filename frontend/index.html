@@ -11,6 +11,7 @@
     <?!= include('frontend/views/css/table'); ?>
     <?!= include('frontend/views/css/form'); ?>
     <?!= include('frontend/views/css/toast'); ?>
+    <?!= include('frontend/views/css/reportes'); ?>
     <base target="_top">
 </head>
 
@@ -46,17 +47,19 @@
     <?!= include("frontend/services/tarea.service"); ?>
 
     <!-- 4. Controladores de Interfaz Gráfica (DOM / Vistas) -->
-    <?!= include("frontend/views/user.dom"); ?>
-    <?!= include("frontend/views/tarea.dom"); ?>
-    
+    <?!= include("frontend/views/dom/user.dom"); ?>
+    <?!= include("frontend/views/dom/tarea.dom"); ?>
+    <?!= include("frontend/views/dom/control.dom"); ?>
+    <?!= include("frontend/views/dom/reporte.dom"); ?>
+    <?!= include("frontend/views/dom/vista.dom"); ?> 
+
     <!-- 5. Controladores del Layout y Componentes Genéricos -->
-    <?!= include("frontend/views/vista.dom"); ?> 
-    <?!= include("frontend/views/modal.dom"); ?>
-    <?!= include("frontend/views/form.dom"); ?>
-    <?!= include("frontend/views/tabla.dom"); ?>
-    <?!= include("frontend/views/toast.dom"); ?>
-    <?!= include("frontend/views/topbar.dom"); ?>
-    <?!= include("frontend/views/control.dom"); ?>
+    <?!= include("frontend/views/dom/modal.dom"); ?>
+    <?!= include("frontend/views/dom/form.dom"); ?>
+    <?!= include("frontend/views/dom/tabla.dom"); ?>
+    <?!= include("frontend/views/dom/toast.dom"); ?>
+    <?!= include("frontend/views/dom/topbar.dom"); ?>
+    
     
     <!-- 6. Inicializador de la Aplicación -->
     <?!= include("frontend/main"); ?>

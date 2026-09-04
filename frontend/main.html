@@ -1,7 +1,9 @@
 <script>
-// Variables Globales del Estado de la Aplicación
-let DATOS_LOCALES = [];
-let CABECERAS_LOCALES = [];
+// Estado global centralizado de la aplicación
+const AppState = {
+    datos: [],        // Filas de la tabla (Registros)
+    cabeceras: []     // Encabezados de la tabla
+};
 
 // Escuchar el evento de carga del navegador
 document.addEventListener('DOMContentLoaded', () => {

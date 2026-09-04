@@ -1,0 +1,85 @@
+<script>
+    /**
+ * Controlador visual encargado de gestionar los clics del menú lateral y conmutar estados.
+ */
+const NavigationDOM = {
+    elementos: {
+        listaMenu: () => document.getElementById('sidebar-list'),
+        enlaces: () => document.querySelectorAll('.sidebar-link')
+    },
+
+    /**
+     * Inicializa un único escuchador de eventos global para todo el menú (Delegación).
+     */
+    inicializar() {
+        this.elementos.listaMenu()?.addEventListener('click', (e) => {
+            // Buscamos el enlace (.sidebar-link) más cercano al elemento cliqueado
+            const enlace = e.target.closest('.sidebar-link');
+            if (!enlace) return;
+
+            // DETENER DUPLICADOS DE RAÍZ:
+            e.preventDefault();
+            e.stopImmediatePropagation(); 
+            
+            this._activarEnlaceVisual(enlace);
+            this._procesarRuta(enlace);
+        });
+    },
+
+    /**
+     * Modifica las clases CSS de la Sidebar de forma centralizada.
+     */
+    _activarEnlaceVisual(enlaceSeleccionado) {
+        this.elementos.enlaces().forEach(link => link.classList.remove('sidebar-link--active'));
+        enlaceSeleccionado.classList.add('sidebar-link--active');
+    },
+
+    /**
+     * Evalúa qué acción o pantalla disparar según el ID o atributos del enlace.
+     */
+    _procesarRuta(enlace) {
+        const idRuta = enlace.id;
+        const estadoFiltro = enlace.getAttribute('data-estado');
+
+        // Caso 1: Es un enlace que filtra la tabla existente
+        if (estadoFiltro) {
+            // Volver a la vista de tareas si estábamos en Reportes
+            if (typeof ReporteDOM !== 'undefined') ReporteDOM.mostrarVistaTareas();
+
+            TablaDOM.estadoActual = estadoFiltro;
+            
+            // Actualizamos el título usando la misma lógica centralizada
+            const titulo = document.getElementById('titulo');
+            if (titulo) titulo.innerText = `TICKETS: ${estadoFiltro.toUpperCase()}`;
+            
+            // Limpiamos buscador y refrescamos los datos filtrados
+            const buscador = document.getElementById('buscador');
+            if (buscador) buscador.value = '';
+            
+            TablaDOM.paginaActual = 1;
+            TablaDOM.aplicarFiltrosYBuscar();
+            return;
+        }
+
+        // Caso 2: Es un cambio de pantalla o acción de utilidades
+        switch (idRuta) {
+            case 'link-control':
+                // Volver a la vista de tareas si estábamos en Reportes
+                if (typeof ReporteDOM !== 'undefined') ReporteDOM.mostrarVistaTareas();
+                ControlDOM.renderizar();
+                break;
+            case 'link-reportes':
+                ReporteDOM.renderizar();
+                break;
+            default:
+                console.warn(`Ruta no manejada: ${idRuta}`);
+        }
+    }
+};
+
+// Arrancamos el escuchador del menú al cargar el archivo
+// document.addEventListener('DOMContentLoaded', () => {
+//     NavigationDOM.inicializar();
+// });
+
+</script>

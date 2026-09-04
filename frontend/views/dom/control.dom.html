@@ -1,0 +1,126 @@
+<script>
+    const ControlDOM = {
+        /**
+         * Procesa y filtra los datos globales para el formato de Control.
+         */
+        _procesarMetricasYDatos() {
+            const metricas = { abiertas: 0, urgente: 0, alta: 0, media: 0, baja: 0 };
+            const filasProcesadas = [];
+            const hoy = new Date();
+
+            AppState.datos.forEach(fila => {                const estado = fila[3]; // Columna Estado
+                
+                if (estado === 'Abierta') {
+                    metricas.abiertas++;
+                    
+                    const prioridad = fila[2] ? fila[2].toLowerCase() : ''; // Columna Prioridad
+                    if (prioridad === 'urgente') metricas.urgente++;
+                    else if (prioridad === 'alta') metricas.alta++;
+                    else if (prioridad === 'media') metricas.media++;
+                    else if (prioridad === 'baja') metricas.baja++;
+
+                    // Calcular Antigüedad (días) desde la Columna 1 (Fecha Solicitud)
+                    let diasAntiguedad = 0;
+                    const fechaTexto = fila[1]; 
+                    
+                    if (fechaTexto) {
+                        const partes = fechaTexto.split('/');
+                        if (partes.length === 3) {
+                            const fechaSolicitud = new Date(parseInt(partes[2], 10), parseInt(partes[1], 10) - 1, parseInt(partes[0], 10));
+                            const diferenciaTiempo = hoy.getTime() - fechaSolicitud.getTime();
+                            diasAntiguedad = Math.floor(diferenciaTiempo / (1000 * 60 * 60 * 24));
+                            if (diasAntiguedad < 0) diasAntiguedad = 0;
+                        }
+                    }
+
+                    filasProcesadas.push({
+                        id: fila[0],
+                        prioridad: fila[2] || 'Media',
+                        descripcion: fila[4] || 'Sin descripción',
+                        antiguedad: diasAntiguedad
+                    });
+                }
+            });
+
+            return { metricas, filasProcesadas };
+        },
+
+        /**
+         * Genera el HTML de las tarjetas de métricas.
+         */
+        _obtenerHtmlMetricas(metricas) {
+            return `
+                <div class="metrics-grid" style="margin-bottom: 20px;">
+                    <div class="metric-card totales"><div class="metric-lbl">Abiertas</div><div class="metric-val">${metricas.abiertas}</div></div>
+                    <div class="metric-card urgente"><div class="metric-lbl">Urgente</div><div class="metric-val">${metricas.urgente}</div></div>
+                    <div class="metric-card alta"><div class="metric-lbl">Alta</div><div class="metric-val">${metricas.alta}</div></div>
+                    <div class="metric-card media"><div class="metric-lbl">Media</div><div class="metric-val">${metricas.media}</div></div>
+                    <div class="metric-card baja"><div class="metric-lbl">Baja</div><div class="metric-val">${metricas.baja}</div></div>
+                </div>`;
+        },
+
+        /**
+         * Renderiza la vista de control ocultando herramientas innecesarias
+         */
+        renderizar() {
+            const { metricas, filasProcesadas } = this._procesarMetricasYDatos();
+
+            // 1. Insertar las métricas antes de la tabla
+            const contenedorTabla = document.querySelector('.table-container');
+            document.querySelector('.metrics-grid')?.remove();
+            
+            if (contenedorTabla) {
+                contenedorTabla.insertAdjacentHTML('afterbegin', this._obtenerHtmlMetricas(metricas));
+            }
+
+            // 2. Modificar el título del panel superior
+            const titulo = document.getElementById('titulo');
+            if (titulo) titulo.innerText = "MONITOREO DE INCIDENCIAS";
+
+            // 3. CONTROL DE VISIBILIDAD ESTRICTO:
+            // Ocultamos la barra de botones (Nueva Tarea y Excel)
+            const barraBotones = document.querySelector('.btns-bar');
+            if (barraBotones) barraBotones.style.display = 'none';
+
+            // 4. Preparar cabeceras de la tabla
+            const thead = document.querySelector('.table-head');
+            const tbody = document.querySelector('.table-body');
+            if (!thead || !tbody) return;
+
+            thead.innerHTML = `
+                <tr>
+                    <th class="text-center">Acción</th>
+                    <th>Ticket #</th>
+                    <th class="text-center">Prioridad</th>
+                    <th>Descripción</th>
+                    <th class="text-center">Antigüedad (días)</th>
+                </tr>`;
+
+            // 5. Pintar las filas mapeando el objeto de control
+            if (filasProcesadas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #6b7280;">No hay incidencias abiertas para monitorear.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filasProcesadas.map(ticket => `
+                <tr>
+                    <td class="text-center">
+                        <button class="btn-mini btn-close" data-id="${escapeHtml(ticket.id)}" title="Ver Detalles">
+                            <i class="bi bi-unlock"></i>
+                        </button>
+                    </td>
+                    <td>${escapeHtml(ticket.id)}</td>
+                    <td class="text-center">
+                        <span class="badge prioridad-${escapeHtml(String(ticket.prioridad).toLowerCase())}">${escapeHtml(ticket.prioridad)}</span>
+                    </td>
+                    <td>${escapeHtml(ticket.descripcion)}</td>
+                    <td class="text-center fw-bold">${escapeHtml(ticket.antiguedad)}</td>
+                </tr>
+            `).join('');
+
+            // Ocultamos el paginador global
+            const paginadorGlobal = document.getElementById('paginador');
+            if (paginadorGlobal) paginadorGlobal.style.display = 'none';
+        }
+    };
+</script>

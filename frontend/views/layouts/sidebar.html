@@ -1,15 +1,8 @@
 <nav class="sidebar-menu">
   <ul id="sidebar-list">
-    <!-- Filtro Todas -->
-    <li class="sidebar-item">
-      <a href="#" class="sidebar-link sidebar-link--active" id="link-tareas" data-estado="Todas">
-        <i class="bi bi-grid-fill"></i>
-        <span class="tooltip">Tareas</span>
-      </a>
-    </li>
     <!-- Filtro Abiertas -->
     <li class="sidebar-item">
-      <a href="#" class="sidebar-link" id="link-abiertas" data-estado="Abierta">
+      <a href="#" class="sidebar-link sidebar-link--active" id="link-abiertas" data-estado="Abierta">
         <i class="bi bi-clock-history"></i>
         <span class="tooltip">Abiertas</span>
       </a>
@@ -21,7 +14,13 @@
         <span class="tooltip">Resueltas</span>
       </a>
     </li>
-    
+    <!-- Filtro Todas -->
+    <li class="sidebar-item">
+      <a href="#" class="sidebar-link" id="link-tareas" data-estado="Todas">
+        <i class="bi bi-grid-fill"></i>
+        <span class="tooltip">Tareas</span>
+      </a>
+    </li>
     <li class="sidebar-divider"></li> <!-- Cambiado hr inline por una clase CSS limpia -->
     
     <!-- Pantalla Control -->

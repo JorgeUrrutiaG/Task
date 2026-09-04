@@ -1,0 +1,311 @@
+<script>
+    // Registrar el plugin de etiquetas de Chart.js (si está disponible).
+    (function registrarDatalabels() {
+        try {
+            if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
+                Chart.register(ChartDataLabels);
+            }
+        } catch (e) {
+            console.warn('No se pudo registrar ChartDataLabels:', e);
+        }
+    })();
+
+    /**
+     * Controlador de la vista de Reportes (dashboard).
+     * Calcula métricas a partir de AppState.datos y renderiza:
+     *  - Cuadro resumen 3x5 (Abiertos / Resueltos / % Resueltos por prioridad)
+     *  - Gráfico de torta (% resueltos vs abiertos)
+     *  - Gráfico de barras (tickets resueltos por usuario)
+     */
+    const ReporteDOM = {
+        // Referencias a las instancias de Chart activas para poder destruirlas
+        _charts: [],
+
+        // Índices de columnas de la hoja Registros (deben coincidir con el backend)
+        _idx: { prioridad: 2, estado: 3, usuario: 6 },
+
+        _P_KEYS: ['urgente', 'alta', 'media', 'baja'],
+
+        // Restaura el layout que ControlDOM oculta (btns-bar y paginador)
+        _restaurarLayout() {
+            const barraBotones = document.querySelector('.btns-bar');
+            if (barraBotones) barraBotones.style.display = 'flex';
+
+            const paginador = document.getElementById('paginador');
+            if (paginador) paginador.style.display = '';
+
+            const titulo = document.getElementById('titulo');
+            if (titulo) titulo.innerText = 'PANEL DE REPORTES';
+
+            document.querySelector('.metrics-grid')?.remove();
+        },
+
+        _destruirGraficos() {
+            this._charts.forEach(chart => { if (chart) chart.destroy(); });
+            this._charts = [];
+        },
+
+        /**
+         * Calcula las métricas del cuadro resumen y los gráficos.
+         * Devuelve { resumen, totalAbiertos, totalResueltos, totalGeneral,
+         *            totalPorPrioridad, resueltosPorUsuario }.
+         */
+        _calcularMetricas() {
+            // resumen[estado][prioridad]
+            const resumen = {
+                abiertos: { tickets: 0, urgente: 0, alta: 0, media: 0, baja: 0 },
+                resueltos: { tickets: 0, urgente: 0, alta: 0, media: 0, baja: 0 }
+            };
+            const resueltosPorUsuario = {};
+            let totalAbiertos = 0;
+            let totalResueltos = 0;
+
+            AppState.datos.forEach(fila => {
+                const estado = fila[this._idx.estado];
+                const prioridad = fila[this._idx.prioridad];
+                const bajaPrioridad = String(prioridad || '').toLowerCase();
+                const usuario = fila[this._idx.usuario] || 'Sin asignar';
+
+                if (estado === 'Abierta') {
+                    totalAbiertos++;
+                    resumen.abiertos.tickets++;
+                    if (resumen.abiertos[bajaPrioridad] !== undefined) resumen.abiertos[bajaPrioridad]++;
+                } else if (estado === 'Resuelta') {
+                    totalResueltos++;
+                    resumen.resueltos.tickets++;
+                    if (resumen.resueltos[bajaPrioridad] !== undefined) resumen.resueltos[bajaPrioridad]++;
+                    resueltosPorUsuario[usuario] = (resueltosPorUsuario[usuario] || 0) + 1;
+                }
+            });
+
+            const totalGeneral = totalAbiertos + totalResueltos;
+
+            // Base por cada columna de prioridad = abiertos + resueltos de esa prioridad
+            const totalPorPrioridad = {};
+            this._P_KEYS.forEach(k => {
+                totalPorPrioridad[k] = resumen.abiertos[k] + resumen.resueltos[k];
+            });
+
+            // Pct de una parte sobre una base (previene división por cero)
+            const _pct = (parte, base) => base > 0
+                ? `${((parte / base) * 100).toFixed(1)}%`
+                : '0%';
+
+            return {
+                resumen,
+                totalAbiertos,
+                totalResueltos,
+                totalGeneral,
+                totalPorPrioridad,
+                resueltosPorUsuario,
+                _pct
+            };
+        },
+
+        /**
+         * Construye el HTML del cuadro resumen de 5 columnas:
+         * [Tickets | Urgente | Alta | Media | Baja]
+         * La columna "Tickets" muestra el rótulo del estado junto a su total.
+         */
+        _obtenerHtmlCuadro({ resumen, totalGeneral, totalPorPrioridad, _pct }) {
+            // Celdas de prioridad de una fila, en orden Urgente/Media/Baja/Alta... (usamos _P_KEYS)
+            const celdasPrioridad = (fila) =>
+                this._P_KEYS.map(k => `<td>${fila[k]}</td>`).join('');
+
+            // % Resueltos por prioridad: base = abiertos + resueltos de esa prioridad
+            const pctPorPrioridad = this._P_KEYS.map(k =>
+                `<td>${_pct(resumen.resueltos[k], totalPorPrioridad[k])}</td>`
+            ).join('');
+
+            return `
+            <div class="reportes-tabla-wrap">
+                <table class="reportes-tabla">
+                    <thead>
+                        <tr>
+                            <th>Tickets</th>
+                            <th>Urgente</th>
+                            <th>Alta</th>
+                            <th>Media</th>
+                            <th>Baja</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">Abiertos (${resumen.abiertos.tickets})</th>
+                            ${celdasPrioridad(resumen.abiertos)}
+                        </tr>
+                        <tr>
+                            <th scope="row">Resueltos (${resumen.resueltos.tickets})</th>
+                            ${celdasPrioridad(resumen.resueltos)}
+                        </tr>
+                        <tr>
+                            <th scope="row">% Resueltos (${_pct(resumen.resueltos.tickets, totalGeneral)})</th>
+                            ${pctPorPrioridad}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>`;
+        },
+
+        /**
+         * Dibuja el gráfico de torta (resueltos vs abiertos).
+         */
+        _dibujarTorta({ totalAbiertos, totalResueltos }) {
+            const canvas = document.getElementById('grafico-torta');
+            if (!canvas) return;
+
+            const total = totalAbiertos + totalResueltos;
+            const pct = (valor) => total > 0 ? ((valor / total) * 100).toFixed(1) : '0';
+
+            const ctx = canvas.getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Resueltos', 'Abiertos'],
+                    datasets: [{
+                        data: [totalResueltos, totalAbiertos],
+                        backgroundColor: ['#10b981', '#a9a9a9'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: (item) => {
+                                    const valor = item.raw;
+                                    const p = total > 0 ? ((valor / total) * 100).toFixed(1) : '0';
+                                    return ` ${item.label}: ${valor} (${p}%)`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#ffffff',
+                            font: { weight: 'bold', size: 14 },
+                            formatter: (value) => `${pct(value)}%`
+                        }
+                    }
+                }
+            });
+            this._charts.push(chart);
+        },
+
+        /**
+         * Dibuja el gráfico de barras (tickets resueltos por usuario).
+         */
+        _dibujarBarras(resueltosPorUsuario) {
+            const canvas = document.getElementById('grafico-barras');
+            if (!canvas) return;
+
+            const usuarios = Object.keys(resueltosPorUsuario);
+            const valores = usuarios.map(u => resueltosPorUsuario[u]);
+
+            const ctx = canvas.getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: usuarios,
+                    datasets: [{
+                        label: 'Tickets Resueltos',
+                        data: valores,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (item) => ` ${item.raw} resueltos`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { precision: 0 } }
+                    }
+                }
+            });
+            this._charts.push(chart);
+        },
+
+        /**
+         * Restaura la vista de tabla de tareas (oculta reportes y muestra la tabla).
+         */
+        mostrarVistaTareas() {
+            const reportesView = document.querySelector('.reportes-view');
+            if (reportesView) reportesView.remove();
+
+            const tabla = document.querySelector('.table-container');
+            if (tabla) tabla.style.display = '';
+
+            // Restaurar elementos que ControlDOM oculta
+            const barraBotones = document.querySelector('.btns-bar');
+            if (barraBotones) barraBotones.style.display = '';
+
+            const paginador = document.getElementById('paginador');
+            if (paginador) paginador.style.display = '';
+
+            document.querySelector('.metrics-grid')?.remove();
+
+            const titulo = document.getElementById('titulo');
+            if (titulo) titulo.innerText = 'PANEL PRINCIPAL';
+        },
+
+        /**
+         * Renderiza la vista completa de reportes dentro del contenedor principal.
+         */
+        renderizar() {
+            this._restaurarLayout();
+            this._destruirGraficos();
+
+            // Ocultamos la tabla de tareas para evitar que interfiera
+            const tabla = document.querySelector('.table-container');
+            if (tabla) tabla.style.display = 'none';
+
+            // Reutilizamos (o creamos) el contenedor de reportes
+            let contenedor = document.querySelector('.reportes-view');
+            if (!contenedor) {
+                contenedor = document.createElement('div');
+                contenedor.className = 'reportes-view';
+                const main = document.querySelector('.main');
+                if (main) main.appendChild(contenedor);
+                else return;
+            }
+
+            const metricas = this._calcularMetricas();
+
+            contenedor.innerHTML = `
+                <div class="reportes-container">
+                    ${this._obtenerHtmlCuadro(metricas)}
+                    <div class="reportes-graficos">
+                        <div class="reporte-card">
+                            <h3>Estado General</h3>
+                            <div class="reporte-canvas-wrap">
+                                <canvas id="grafico-torta"></canvas>
+                            </div>
+                        </div>
+                        <div class="reporte-card">
+                            <h3>Resueltos por Usuario</h3>
+                            <div class="reporte-canvas-wrap">
+                                <canvas id="grafico-barras"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+            // Dibujar tras asegurar que el DOM del contenedor está en el documento
+            requestAnimationFrame(() => {
+                this._dibujarTorta(metricas);
+                this._dibujarBarras(metricas.resueltosPorUsuario);
+            });
+        }
+    };
+</script>
